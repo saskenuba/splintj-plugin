@@ -1,0 +1,65 @@
+<idea-plugin>
+    <id>com.example.splint-intellij</id>
+    <name>Splint Clojure Analyzer</name>
+    <vendor>Your Name</vendor>
+    
+    <description><![CDATA[
+        Integrates Splint, the Clojure linter and code analyzer, into IntelliJ IDEA.
+    ]]></description>
+    
+    <change-notes><![CDATA[
+        <h3>1.0.1</h3>
+        <ul>
+            <li>Fixed file type registration for Cursive/Clojure files</li>
+            <li>Added error notifications</li>
+            <li>Improved EDN parsing</li>
+        </ul>
+    ]]></change-notes>
+    
+    <idea-version since-build="231"/>
+    
+    <depends>com.intellij.modules.platform</depends>
+    <depends optional="true" config-file="cursive-integration.xml">cursive</depends>
+    
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- CRITICAL FIX: Register specifically for Clojure language -->
+        <externalAnnotator 
+            language="Clojure" 
+            implementationClass="com.example.splint.SplintExternalAnnotator"/>
+        
+        <!-- Fallback for files opened as plain text -->
+        <externalAnnotator 
+            language="TEXT" 
+            implementationClass="com.example.splint.SplintExternalAnnotator"/>
+        
+        <applicationConfigurable 
+            instance="com.example.splint.SplintSettingsConfigurable"
+            displayName="Splint"
+            id="com.example.splint.settings"/>
+        
+        <applicationService 
+            serviceImplementation="com.example.splint.SplintSettings"/>
+
+        <!-- Register notification group for error popups -->
+        <notificationGroup id="Splint Error" displayType="BALLOON"/>
+    </extensions>
+    
+    <actions>
+        <action 
+            id="Splint.RunOnFile" 
+            class="com.example.splint.SplintRunAction"
+            text="Run Splint on Current File"
+            description="Run Splint analyzer on the current file">
+            <add-to-group group-id="CodeMenu" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl shift L"/>
+        </action>
+        
+        <action 
+            id="Splint.RunOnProject" 
+            class="com.example.splint.SplintRunProjectAction"
+            text="Run Splint on Project"
+            description="Run Splint analyzer on all Clojure files in the project">
+            <add-to-group group-id="CodeMenu" anchor="last"/>
+        </action>
+    </actions>
+</idea-plugin>
