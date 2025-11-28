@@ -2,11 +2,14 @@ package com.example.splint
 
 import com.intellij.openapi.components.*
 import com.intellij.openapi.options.Configurable
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
 import com.intellij.util.xmlb.XmlSerializerUtil
+import java.awt.event.ActionEvent
 import javax.swing.*
 
+// ... (Keep the SplintSettings class as is) ...
 @State(
     name = "SplintSettings",
     storages = [Storage("splint.xml")]
@@ -50,8 +53,22 @@ class SplintSettingsConfigurable : Configurable {
         val execPathPanel = JPanel()
         execPathPanel.layout = BoxLayout(execPathPanel, BoxLayout.X_AXIS)
         execPathPanel.add(JLabel("Splint executable path:"))
-        executablePathField = JBTextField(40)
+        
+        executablePathField = JBTextField(30)
         execPathPanel.add(executablePathField)
+
+        // START CHANGE: Add Download Button
+        val downloadBtn = JButton("Download JAR")
+        downloadBtn.addActionListener {
+            val project = ProjectManager.getInstance().openProjects.firstOrNull()
+            SplintDownloader.downloadSplint(project) { newPath ->
+                executablePathField?.text = newPath
+            }
+        }
+        execPathPanel.add(Box.createHorizontalStrut(5))
+        execPathPanel.add(downloadBtn)
+        // END CHANGE
+        
         panel.add(execPathPanel)
         
         panel.add(Box.createVerticalStrut(10))

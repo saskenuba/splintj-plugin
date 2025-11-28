@@ -17,6 +17,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
+import java.io.File
 
 // MARK: - Data Models
 
@@ -61,10 +62,28 @@ class SplintExternalAnnotator : ExternalAnnotator<PsiFile, AnnotationContext>() 
 
         try {
             val commandLine = GeneralCommandLine()
-                .withExePath(splintPath)
-                .withParameters(filePath, "--output", "json")
-                .withWorkDirectory(project.basePath)
 
+            // Check if the path points to a JAR file
+            if (splintPath.endsWith(".jar")) {
+                // Use the current JVM to run the JAR
+                val javaBin = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java"
+                commandLine.withExePath(javaBin)
+                commandLine.addParameter("-jar")
+                commandLine.addParameter(splintPath)
+            } else {
+                // Otherwise, treat it as a standard binary executable
+                commandLine.withExePath(splintPath)
+            }
+
+            // Add standard arguments
+            commandLine.addParameter(filePath)
+            commandLine.addParameter("--output")
+            commandLine.addParameter("json")
+
+            // Set working directory
+            commandLine.withWorkDirectory(project.basePath)
+
+            // Add user-defined additional arguments
             if (settings.additionalArgs.isNotBlank()) {
                 commandLine.addParameters(settings.additionalArgs.split(" "))
             }
@@ -87,6 +106,7 @@ class SplintExternalAnnotator : ExternalAnnotator<PsiFile, AnnotationContext>() 
             return null
         }
     }
+
 
     override fun apply(file: PsiFile, context: AnnotationContext, holder: AnnotationHolder) {
         val document = file.viewProvider.document ?: return
