@@ -25,7 +25,7 @@ class SplintParserTest() {
         assertEquals(28, issue1.column)
         assertEquals("lint/redundant-str-call", issue1.rule)
         assertEquals("Use the literal directly.", issue1.message)
-        assertEquals("\"w-1/3\"", issue1.alt)
+        assertEquals("\"w-1/3 text-right mt-1 pr-1\"", issue1.alt)
 
         // 3. Validate second issue
         val issue2 = issues[1]
