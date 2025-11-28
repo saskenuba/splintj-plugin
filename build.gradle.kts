@@ -1,7 +1,7 @@
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "1.9.24"
-    id("org.jetbrains.intellij.platform") version "2.10.5"
+    id("org.jetbrains.intellij.platform") version "2.1.0"
 }
 
 group = "com.example"
@@ -19,6 +19,7 @@ dependencies {
         intellijIdeaCommunity("2024.1")
         pluginVerifier()
         zipSigner()
+        instrumentationTools()
     }
     testImplementation(kotlin("test"))
 }
