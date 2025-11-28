@@ -1,10 +1,7 @@
 /.gradle/
-/gradle/
 /build/
 /.intellijPlatform/
 /.kotlin/
-/gradlew
-/gradlew.bat
 *.iml
 *.iws
 *.ipr
