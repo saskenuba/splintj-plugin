@@ -127,9 +127,15 @@ class SplintExternalAnnotator : ExternalAnnotator<PsiFile, AnnotationContext>() 
                 val builder = holder.newAnnotation(severity, message)
                     .range(range)
 
-                // Attach QuickFix if 'alt' is available
+                // Attach QuickFix if 'alt' is available (replacement suggestion)
                 if (!issue.alt.isNullOrBlank()) {
                     builder.withFix(SplintQuickFix(range, issue.alt))
+                }
+
+                // Attach disable/exclude quick-fixes if rule name is available
+                if (!issue.rule.isNullOrBlank()) {
+                    builder.withFix(SplintDisableInlineQuickFix(range.startOffset, issue.rule))
+                    builder.withFix(SplintExcludeFileQuickFix(file.project, issue.rule, file.name))
                 }
 
                 builder.create()
@@ -183,8 +189,11 @@ class SplintExternalAnnotator : ExternalAnnotator<PsiFile, AnnotationContext>() 
     }
 }
 
-// MARK: - Quick Fix Action
+// MARK: - Quick Fix Actions
 
+/**
+ * Quick fix to replace code with Splint's suggested alternative
+ */
 class SplintQuickFix(
     private val range: TextRange,
     private val replacement: String
@@ -221,6 +230,110 @@ class SplintQuickFix(
     }
 
     override fun startInWriteAction(): Boolean = true
+}
+
+/**
+ * Quick fix to disable a specific rule for the current form using inline comment
+ */
+class SplintDisableInlineQuickFix(
+    private val insertOffset: Int,
+    private val ruleName: String
+) : IntentionAction {
+
+    override fun getText(): String = "Disable $ruleName for this form"
+
+    override fun getFamilyName(): String = "Splint inline disable"
+
+    override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?): Boolean {
+        return file != null && insertOffset <= file.textLength
+    }
+
+    override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
+        if (editor == null || file == null) return
+
+        // 1. Check write permissions
+        if (!FileModificationService.getInstance().prepareFileForWrite(file)) return
+
+        // 2. Insert the disable comment before the form
+        val disableComment = "#_{:splint/disable [$ruleName]} "
+        editor.document.insertString(insertOffset, disableComment)
+
+        // 3. Sync the IntelliJ Document with the PSI
+        PsiDocumentManager.getInstance(project).commitDocument(editor.document)
+
+        // 4. Save to disk so splint sees the new content
+        FileDocumentManager.getInstance().saveDocument(editor.document)
+
+        // 5. Force re-run of the External Annotator
+        DaemonCodeAnalyzer.getInstance(project).restart(file)
+    }
+
+    override fun startInWriteAction(): Boolean = true
+}
+
+/**
+ * Quick fix to exclude the current file from a specific rule via .splint.edn
+ */
+class SplintExcludeFileQuickFix(
+    private val project: Project,
+    private val ruleName: String,
+    private val fileName: String
+) : IntentionAction {
+
+    override fun getText(): String = "Exclude this file from $ruleName"
+
+    override fun getFamilyName(): String = "Splint file exclusions"
+
+    override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?): Boolean {
+        return file != null && project.basePath != null
+    }
+
+    override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
+        if (file == null) return
+
+        val projectRoot = File(project.basePath ?: return)
+
+        // Check if already excluded
+        if (EdnConfigManager.ruleHasExclusion(projectRoot, ruleName, "glob:**/$fileName")) {
+            NotificationGroupManager.getInstance()
+                .getNotificationGroup("Splint Error")
+                .createNotification(
+                    "Already Excluded",
+                    "File $fileName is already excluded from $ruleName",
+                    NotificationType.INFORMATION
+                )
+                .notify(project)
+            return
+        }
+
+        // Add exclusion to .splint.edn
+        val success = EdnConfigManager.addExclusion(projectRoot, ruleName, "glob:**/$fileName")
+
+        if (success) {
+            NotificationGroupManager.getInstance()
+                .getNotificationGroup("Splint Error")
+                .createNotification(
+                    "File Excluded",
+                    "Added $fileName to $ruleName exclusions in .splint.edn",
+                    NotificationType.INFORMATION
+                )
+                .notify(project)
+
+            // Force re-run of the External Annotator
+            DaemonCodeAnalyzer.getInstance(project).restart(file)
+        } else {
+            NotificationGroupManager.getInstance()
+                .getNotificationGroup("Splint Error")
+                .createNotification(
+                    "Exclusion Failed",
+                    "Failed to update .splint.edn",
+                    NotificationType.ERROR
+                )
+                .notify(project)
+        }
+    }
+
+    override fun startInWriteAction(): Boolean = false
 }
 
 // MARK: - Top-Level Helper Functions
