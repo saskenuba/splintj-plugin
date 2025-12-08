@@ -3,6 +3,7 @@ package com.example.splint
 import com.intellij.codeInsight.FileModificationService
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.util.ExecUtil
 import com.intellij.lang.annotation.AnnotationHolder
@@ -213,8 +214,10 @@ class SplintQuickFix(
     override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
         if (editor == null || file == null) return
 
-        // 1. Check write permissions
-        if (!FileModificationService.getInstance().prepareFileForWrite(file)) return
+        // Skip file writability check during preview generation (runs on background thread)
+        if (!IntentionPreviewUtils.isPreviewElement(file)) {
+            if (!FileModificationService.getInstance().prepareFileForWrite(file)) return
+        }
 
         // 2. Apply the change to the editor (In-Memory)
         editor.document.replaceString(range.startOffset, range.endOffset, replacement)
@@ -251,8 +254,10 @@ class SplintDisableInlineQuickFix(
     override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
         if (editor == null || file == null) return
 
-        // 1. Check write permissions
-        if (!FileModificationService.getInstance().prepareFileForWrite(file)) return
+        // Skip file writability check during preview generation (runs on background thread)
+        if (!IntentionPreviewUtils.isPreviewElement(file)) {
+            if (!FileModificationService.getInstance().prepareFileForWrite(file)) return
+        }
 
         // 2. Insert the disable comment before the form
         val disableComment = "#_{:splint/disable [$ruleName]} "
