@@ -35,3 +35,23 @@ jobs:
           path: build/distributions/*.zip
           if-no-files-found: error
           retention-days: 7
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: splint-intellij-plugin
+
+      - name: Update latest release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          prerelease: true
+          files: '*.zip'
+          name: Latest Build
+          body: 'Automated build from ${{ github.sha }}'
