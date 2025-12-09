@@ -43,7 +43,7 @@ class SplintSettingsConfigurable : Configurable {
     private var timeoutField: JBTextField? = null
     private var additionalArgsField: JBTextField? = null
     
-    override fun getDisplayName(): String = "Splint"
+    override fun getDisplayName(): String = "SplintJ"
     
     override fun createComponent(): JComponent {
         val panel = JPanel()

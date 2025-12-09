@@ -1,6 +1,6 @@
 <idea-plugin>
     <id>com.example.splint-intellij</id>
-    <name>Splint Clojure Analyzer</name>
+    <name>SplintJ</name>
     <vendor>Your Name</vendor>
     
     <description><![CDATA[
@@ -34,19 +34,19 @@
         
         <applicationConfigurable 
             instance="com.example.splint.SplintSettingsConfigurable"
-            displayName="Splint"
+            displayName="SplintJ"
             id="com.example.splint.settings"/>
         
         <applicationService 
             serviceImplementation="com.example.splint.SplintSettings"/>
 
         <!-- Register notification group for error popups -->
-        <notificationGroup id="Splint Error" displayType="BALLOON"/>
+        <notificationGroup id="SplintJ Error" displayType="BALLOON"/>
     </extensions>
     
     <actions>
         <action 
-            id="Splint.RunOnFile" 
+            id="SplintJ.RunOnFile" 
             class="com.example.splint.SplintRunAction"
             text="Run Splint on Current File"
             description="Run Splint analyzer on the current file">
@@ -55,7 +55,7 @@
         </action>
         
         <action 
-            id="Splint.RunOnProject" 
+            id="SplintJ.RunOnProject" 
             class="com.example.splint.SplintRunProjectAction"
             text="Run Splint on Project"
             description="Run Splint analyzer on all Clojure files in the project">

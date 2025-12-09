@@ -184,7 +184,7 @@ class SplintExternalAnnotator : ExternalAnnotator<PsiFile, AnnotationContext>() 
 
     private fun notifyError(project: Project, stderr: String) {
         NotificationGroupManager.getInstance()
-            .getNotificationGroup("Splint Error")
+            .getNotificationGroup("SplintJ Error")
             .createNotification("Splint Execution Failed", stderr, NotificationType.ERROR)
             .notify(project)
     }
@@ -301,7 +301,7 @@ class SplintExcludeFileQuickFix(
         // Check if already excluded
         if (EdnConfigManager.ruleHasExclusion(projectRoot, ruleName, "glob:**/$fileName")) {
             NotificationGroupManager.getInstance()
-                .getNotificationGroup("Splint Error")
+                .getNotificationGroup("SplintJ Error")
                 .createNotification(
                     "Already Excluded",
                     "File $fileName is already excluded from $ruleName",
@@ -316,7 +316,7 @@ class SplintExcludeFileQuickFix(
 
         if (success) {
             NotificationGroupManager.getInstance()
-                .getNotificationGroup("Splint Error")
+                .getNotificationGroup("SplintJ Error")
                 .createNotification(
                     "File Excluded",
                     "Added $fileName to $ruleName exclusions in .splint.edn",
@@ -328,7 +328,7 @@ class SplintExcludeFileQuickFix(
             DaemonCodeAnalyzer.getInstance(project).restart(file)
         } else {
             NotificationGroupManager.getInstance()
-                .getNotificationGroup("Splint Error")
+                .getNotificationGroup("SplintJ Error")
                 .createNotification(
                     "Exclusion Failed",
                     "Failed to update .splint.edn",

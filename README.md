@@ -36,7 +36,7 @@ When Splint reports an issue, the following quick-fixes may be available:
 
 ## Configuration
 
-Configure the plugin in Settings > Tools > Splint:
+Configure the plugin in Settings > Tools > SplintJ:
 
 - **Executable path**: Path to Splint JAR or native binary
 - **Timeout**: Maximum execution time
