@@ -128,15 +128,15 @@ class SplintExternalAnnotator : ExternalAnnotator<PsiFile, AnnotationContext>() 
                 val builder = holder.newAnnotation(severity, message)
                     .range(range)
 
+                // Attach disable/exclude quick-fixes if rule name is available
+                if (!issue.rule.isNullOrBlank()) {
+                    builder.withFix(SplintExcludeFileQuickFix(file.project, issue.rule, file.name))
+                    builder.withFix(SplintDisableInlineQuickFix(range.startOffset, issue.rule))
+                }
+
                 // Attach QuickFix if 'alt' is available (replacement suggestion)
                 if (!issue.alt.isNullOrBlank()) {
                     builder.withFix(SplintQuickFix(range, issue.alt))
-                }
-
-                // Attach disable/exclude quick-fixes if rule name is available
-                if (!issue.rule.isNullOrBlank()) {
-                    builder.withFix(SplintDisableInlineQuickFix(range.startOffset, issue.rule))
-                    builder.withFix(SplintExcludeFileQuickFix(file.project, issue.rule, file.name))
                 }
 
                 builder.create()
