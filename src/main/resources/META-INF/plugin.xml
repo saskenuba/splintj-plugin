@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>com.example.splint-intellij</id>
     <name>SplintJ</name>
-    <vendor>Your Name</vendor>
+    <vendor url="https://github.com/saskenuba/splintj-plugin">Martin Mariano</vendor>
     
     <description><![CDATA[
         Integrates Splint, the Clojure linter and code analyzer, into IntelliJ IDEA.
